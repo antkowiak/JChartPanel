@@ -105,7 +105,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		 * Chart panel data, which includes the raw data point values, in addition to
 		 * calculations for pixel placements.
 		 */
-		protected JChartPanelData seriesData;
+		protected JChartPanelDataScreenPlacement seriesData;
 
 		/**
 		 * The name of the series.
@@ -132,7 +132,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		 * @param seriesColor
 		 *            - color to use when displaying the series
 		 */
-		protected ChartSeriesStruct(JChartPanelData seriesData, String seriesName, Color seriesColor)
+		protected ChartSeriesStruct(JChartPanelDataScreenPlacement seriesData, String seriesName, Color seriesColor)
 		{
 			this.seriesIndex = chartSeriesIndexCounter++;
 			this.seriesData = seriesData;
@@ -313,7 +313,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 	{
 		if (series != null && color != null)
 		{
-			ChartSeriesStruct css = new ChartSeriesStruct(new JChartPanelData(series), seriesName, color);
+			ChartSeriesStruct css = new ChartSeriesStruct(new JChartPanelDataScreenPlacement(series), seriesName, color);
 			seriesData.add(css);
 			return css.seriesIndex;
 		}
