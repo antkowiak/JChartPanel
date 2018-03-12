@@ -38,8 +38,8 @@ public class Main
 		// Create the JChartPanel and add the sample data series
 		JChartPanel chartPanel = new JChartPanel();
 		chartPanel.addSeries(series1, "Series 1", Color.RED);
-		chartPanel.addSeries(series2, "Series 2", Color.LIGHT_GRAY);	
-		
+		chartPanel.addSeries(series2, "Series 2", Color.LIGHT_GRAY);
+
 		// Add the chart panel to the frame, and let the chart panel know the frame that
 		// owns it.
 		frame.getContentPane().add(chartPanel, BorderLayout.CENTER);
