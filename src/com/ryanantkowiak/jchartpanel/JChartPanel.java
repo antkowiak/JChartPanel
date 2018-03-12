@@ -10,6 +10,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -81,11 +82,6 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 	public static final Font DEFAULT_KEY_FONT = new Font("Arial", Font.BOLD, 20);
 
 	/**
-	 * Counter for chart series struct indices.
-	 */
-	protected int chartSeriesIndexCounter = 0;
-
-	/**
 	 * Class used to track the traits of a series of data that is displayed by a
 	 * chart panel. The traits include: the index of the series, the data points,
 	 * the name of the series, the color to display the series graph, and a flag to
@@ -94,7 +90,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 	 * @author antko
 	 *
 	 */
-	protected class ChartSeriesStruct
+	protected class ChartSeriesStruct implements Comparable<ChartSeriesStruct>
 	{
 		/**
 		 * Index of the series, used to identify this series and index it.
@@ -125,6 +121,8 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		/**
 		 * Construct a ChartSeriesStruct object.
 		 * 
+		 * @param seriesIndex
+		 *            - index id identifier for this series data
 		 * @param seriesData
 		 *            - series data
 		 * @param seriesName
@@ -132,13 +130,30 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		 * @param seriesColor
 		 *            - color to use when displaying the series
 		 */
-		protected ChartSeriesStruct(JChartPanelDataScreenPlacement seriesData, String seriesName, Color seriesColor)
+		protected ChartSeriesStruct(int seriesIndex, JChartPanelDataScreenPlacement seriesData, String seriesName,
+				Color seriesColor)
 		{
-			this.seriesIndex = chartSeriesIndexCounter++;
+			this.seriesIndex = seriesIndex;
 			this.seriesData = seriesData;
 			this.seriesName = seriesName;
 			this.seriesColor = seriesColor;
 			this.visible = true;
+		}
+
+		/**
+		 * Compares two ChartSeriesStruct objects for sorting based on seriesIndex.
+		 */
+		@Override
+		public int compareTo(ChartSeriesStruct arg0)
+		{
+			if (arg0 == null)
+				throw new NullPointerException();
+
+			if (this == arg0)
+				return 0;
+
+			return this.seriesIndex - arg0.seriesIndex;
+
 		}
 	}
 
@@ -313,8 +328,15 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 	{
 		if (series != null && color != null)
 		{
-			ChartSeriesStruct css = new ChartSeriesStruct(new JChartPanelDataScreenPlacement(series), seriesName, color);
+			int seriesIndex = getNextSeriesIndex();
+
+			ChartSeriesStruct css = new ChartSeriesStruct(seriesIndex, new JChartPanelDataScreenPlacement(series),
+					seriesName, color);
+
 			seriesData.add(css);
+
+			Collections.sort(seriesData);
+
 			return css.seriesIndex;
 		}
 
@@ -574,6 +596,73 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 	}
 
 	/**
+	 * Returns the lowest integer (greater than or equal to zero) that is currently
+	 * not being used as a series index.
+	 * 
+	 * @return - the next integer to use for a new series index
+	 */
+	protected int getNextSeriesIndex()
+	{
+		int n = seriesData.size();
+
+		for (int i = 0 ; i < n ; ++i)
+			if (seriesData.get(i).seriesIndex > i)
+				return i;
+
+		return n;
+	}
+
+	/**
+	 * Return a list of the series index IDs that are currently being used by this
+	 * chart panel.
+	 * 
+	 * @return - List of index IDs in use
+	 */
+	public List<Integer> getSeriesIndices()
+	{
+		List<Integer> indices = new ArrayList<Integer>();
+
+		for (ChartSeriesStruct css : seriesData)
+			indices.add(css.seriesIndex);
+
+		return indices;
+	}
+
+	/**
+	 * Return a list of the series index IDs that are currently being used by this
+	 * chart panel and that are currently visible.
+	 * 
+	 * @return - List of visible index IDs in use
+	 */
+	public List<Integer> getVisibleSeriesindicies()
+	{
+		List<Integer> indices = new ArrayList<Integer>();
+
+		for (ChartSeriesStruct css : seriesData)
+			if (css.visible)
+				indices.add(css.seriesIndex);
+
+		return indices;
+	}
+
+	/**
+	 * Return a list of the series index IDs that are currently being used by this
+	 * chart panel and that are currently not visible.
+	 * 
+	 * @return - List of index IDs that are in use and not visible
+	 */
+	public List<Integer> getInvisibleSeriesindicies()
+	{
+		List<Integer> indices = new ArrayList<Integer>();
+
+		for (ChartSeriesStruct css : seriesData)
+			if (!css.visible)
+				indices.add(css.seriesIndex);
+
+		return indices;
+	}
+
+	/**
 	 * Paints the component.
 	 * 
 	 * @param g
@@ -678,9 +767,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		int xPos = p.x;
 
 		if (tips == null || tips.isEmpty() || xPos < 0 || xPos >= getWidth())
-		{
 			return "";
-		}
 
 		if (tips.size() == 1)
 			return tips.get(0);
@@ -689,9 +776,7 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 		int index = (int) ((double) xPos / tipsPixelsPerValue);
 
 		if (index >= 0 && index < tips.size())
-		{
 			return tips.get(index + 1);
-		}
 
 		return "";
 	}
@@ -756,7 +841,6 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 				repaint();
 			}
 		}
-
 	}
 
 	/**
@@ -840,5 +924,4 @@ public class JChartPanel extends JPanel implements MouseMotionListener, KeyListe
 			repaint();
 		}
 	}
-
 }

@@ -141,5 +141,4 @@ public class JChartPanelDataScreenPlacement
 			chartPoints.add(new Point((int) xCoord, (int) yCoord));
 		}
 	}
-
 }
